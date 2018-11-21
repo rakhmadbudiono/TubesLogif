@@ -22,6 +22,14 @@ armorList(ironArmor).
 armorList(woodArmor).
 armorList(nonNewtonianFluidArmor).
 
+medicineList(katsuyu).
+medicineList(healingJutsu).
+
+ammoList(kunai).
+ammoList(scroll).
+ammoList(shuriken).
+ammoList(chakra).
+
 health(shinobiSuna, 50).
 health(shinobiKiri, 50).
 health(shinobiIwa, 50).
@@ -99,7 +107,22 @@ start :- write("Selamat datang di desa Konoha"), nl,
 	asserta(peta([])),
 	baca_map, setPixel(3,3,'P'),
 
+	asserta(location(kunaiThrower,2,3)),
+	asserta(location(ironArmor,2,3)),
+	asserta(location(kunai,3,2)),
+	asserta(location(katsuyu,3,4)),
+	asserta(location(shinobiIwa,2,2)),
+
+	assignNonObject,
+
 	asserta(game(1)).
+
+assignNonObject :- forall(between(2,4,Y),
+   forall(between(2,4,X), assigning(X,Y)
+)), !.
+
+assigning(X, Y) :- not(location(_,X,Y)), asserta(location(none,X,Y)), !.
+assigning(_,_).
 
 change([_|Tail],[C|Tail],C,0) :- !.
 change([A|Tail],[A|LBaru],C,Indeks) :- IndeksBaru is Indeks-1, change(Tail,LBaru,C,IndeksBaru).
@@ -138,7 +161,28 @@ skidipapap :- halt.
 
 /* Look */
 look :- game(0), write('Kamu belum memulai permainan'), !.
+look :-
+	location(self, X,Y),
+	XMin is X-1,
+	XMax is X+1,
+	YMin is Y-1,
+	YMax is Y+1,
+	forall(between(YMin,YMax,J), (
+		forall(between(XMin,XMax,I), (
+			printMap(I,J)
+		)),
+		nl
+	)),
+	!.
+
 look :- look1, look2, look3, look4, look5, look6.
+
+printMap(_,Y) :- Y == 1, !, write('X').
+printMap(_,Y) :- Y == 5, !, write('X').
+printMap(X,_) :- X == 1, !, write('X').
+printMap(X,_) :- X == 5, !, write('X').
+printMap(X,Y) :- location(self, X, Y), !, write('P').
+printMap(_,_) :- write('-').
 
 look1 :- game(1), location(self, X, Y), N is Y+1,
 	location(A, X, N), write('Ada '), allName(A, _), write(A), write(' disebelah selatan'), nl, !.
@@ -160,7 +204,21 @@ look6 :- game(1), location(self, X, Y), location(A, X, Y), A \== self, enemy(A),
 look6 :- !.
 
 /* Map */
-map :- retract(peta(X)), printList(X), asserta(peta(X)), !.
+map :-  updateMap, peta(X), printList(X), !.
+
+updateMap :- forall(between(2,4,Y),
+   forall(between(2,4,X), (
+      location(Q,X,Y), setMap(Q,X,Y)
+   )
+)), !.
+
+setMap(Q, X, Y) :- Q == self,setPixel(X,Y,'P'), !.
+setMap(Q, X, Y) :- enemy(Q),setPixel(X,Y,'E'), !.
+setMap(Q, X, Y) :- weaponList(Q),setPixel(X,Y,'W'), !.
+setMap(Q, X, Y) :- armorList(Q),setPixel(X,Y,'A'), !.
+setMap(Q, X, Y) :- medicineList(Q),setPixel(X,Y,'O'), !.
+setMap(Q, X, Y) :- ammoList(Q),setPixel(X,Y,'M'), !.
+setMap(_, X, Y) :- setPixel(X, Y, '-').
 
 /* Buat baca data dari peta.txt */
 readData(S,[]) :- at_end_of_stream(S), !.
@@ -192,16 +250,16 @@ printList([A|Tail]) :- write(A), printList(Tail).
 
 /* Move */
 n :- location(self, _,B), B == 2, write('Selamat, anda menabrak pagar!'), !.
-n :- retract(location(self, A,B)), setPixel(A, B, '-'), C is B-1, setPixel(A, C, 'P'), asserta(location(self, A,C)), !.
+n :- retract(location(self, A,B)), C is B-1, asserta(location(self, A,C)), assigning(A, B), updateMap, !.
 
 s :- location(self, _,B), B == 4, write('Selamat, anda menabrak pagar!'), !.
-s :- location(self, A,B), setPixel(A, B, '-'), C is B+1, setPixel(A, C, 'P'), asserta(location(self, A,C)), !.
+s :- retract(location(self, A,B)),  C is B+1, asserta(location(self, A,C)), assigning(A, B), updateMap, !.
 
 w :- location(self, A,_), A == 2, write('Selamat, anda menabrak pagar!'), !.
-w :- location(self, A,B), setPixel(A, B, '-'), C is A-1, setPixel(C, B, 'P'), asserta(location(self, C,B)), !.
+w :- retract(location(self, A,B)), C is A-1, asserta(location(self, C,B)), assigning(A, B), updateMap, !.
 
 e :- location(self, A,_), A == 4, write('Selamat, anda menabrak pagar!'), !.
-e :- location(self, A,B), setPixel(A, B, '-'), C is A+1, setPixel(C, B, 'P'), asserta(location(self, C,B)), !.
+e :- retract(location(self, A,B)), C is A+1, asserta(location(self, C,B)), assigning(A, B), updateMap, !.
 
 /* Take */
 take(_) :- game(0), write('Kau belum memulai permainan.'), !.
@@ -265,28 +323,5 @@ attackR(X) :- retract(health(X, H)), H =< 0, assertz(health(X, 0)), retract(loca
 attackR(_) :- health(self, SCH), SCH =< 0, write('You are dead. Better be ready next time.'), nl, retract(game(_)), assertz(game(0)).
 
 /* Save */
-save(X) :- game(1), atom_concat(X, '.pl', Z), tell(Z), write(':- dynamic(health/2).\n\
-	:- dynamic(enemy/1).\n\
-	:- dynamic(damage/2).\n\
-	:- dynamic(moveChance/2).\n\
-	:- dynamic(location/3).\n\
-	:- dynamic(mapSize/2).\n\
-	:- dynamic(object/1).\n\
-	:- dynamic(allName/2).\n\
-	:- dynamic(consumable/1).\n\
-	:- dynamic(weapon/1).\n\
-	:- dynamic(heal/4).\n\
-	:- dynamic(durability/2).\n\
-	:- dynamic(thirst/1).\n\
-	:- dynamic(hunger/1).\n\
-	:- dynamic(game/1).\n\
-	:- dynamic(inventory/1).\n\
-	:- dynamic(prev/1).\n\
-	:- dynamic(equipment/1).\n\
-	:- dynamic(lake/1).\n\
-	:- dynamic(tree/1).\n'), listing(enemy), listing(location), listing(durability),
-		listing(heal), listing(allName), listing(damage), listing(moveChance), listing(durability), listing(hunger),
-		listing(thirst), listing(inventory), listing(lake), listing(game), listing(equipment),
-		listing(consumable), listing(mapSize), listing(weapon), listing(prev), listing(health), listing(lake), listing(tree), told.
 
 /* Load */
