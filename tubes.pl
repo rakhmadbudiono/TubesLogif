@@ -179,8 +179,17 @@ look :-
 			printMap(I,J)
 		)),
 		nl
-	)),
+	)), nl, lookEveryObject,
 	!.
+
+lookEveryObject :- checkingAround1.
+
+checkingAround1 :- location(self, X, Y), location(Q, X, Y), enemy(Q), write('ADA ('), write(Q), write(') DI DEPANMU! '), nl, fail.
+checkingAround1 :- location(self, X, Y), location(Q, X, Y), weaponList(Q), write('Ada ('), write(Q), write(') di tanah! '), nl, fail.
+checkingAround1 :- location(self, X, Y), location(Q, X, Y), armorList(Q, _), write('Ada ('), write(Q), write(') di tanah! '), nl, fail.
+checkingAround1 :- location(self, X, Y), location(Q, X, Y), medicineList(Q), write('Ada ('), write(Q), write(') di tanah! '), nl, fail.
+checkingAround1 :- location(self, X, Y), location(Q, X, Y), ammoList(Q), write('Ada ('), write(Q), write(') di tanah! '), nl, fail.
+checkingAround1 :- location(self, X, Y), location(none, X, Y), write('Kamu berada di tanah kosong. '), nl, !, fail.
 
 printMap(_,Y) :- Y == 1, write('X'), !.
 printMap(_,Y) :- Y == 10, write('X'), !.
@@ -247,43 +256,16 @@ w :- retract(location(self, A,B)), C is A-1, asserta(location(self, C,B)), assig
 e :- location(self, A,_), A == 9, write('Selamat, anda menabrak pagar!'), !.
 e :- retract(location(self, A,B)), C is A+1, asserta(location(self, C,B)), assigning(A, B), updateMap, checkingAround, !.
 
-checkingAround :- checkingAround1, checkingAround2, checkingAround3, checkingAround4, checkingAround5.
+checkingAround :- checkingGround, checkingAround2, checkingAround3, checkingAround4, checkingAround5.
 
-checkingAround1 :- location(self, X, Y), location(Q, X, Y), enemy(Q), write('ADA ('), write(Q), write(') DI DEPANMU! '), nl, !.
-checkingAround1 :- location(self, X, Y), location(Q, X, Y), weaponList(Q), write('Ada ('), write(Q), write(') di tanah! '), nl, !.
-checkingAround1 :- location(self, X, Y), location(Q, X, Y), armorList(Q, _), write('Ada ('), write(Q), write(') di tanah! '), nl, !.
-checkingAround1 :- location(self, X, Y), location(Q, X, Y), medicineList(Q), write('Ada ('), write(Q), write(') di tanah! '), nl, !.
-checkingAround1 :- location(self, X, Y), location(Q, X, Y), ammoList(Q), write('Ada ('), write(Q), write(') di tanah! '), nl, !.
-checkingAround1 :- location(self, X, Y), location(_, X, Y), write('Kamu berada di tanah kosong. '), nl, !.
 
-checkingAround2 :- location(self, X, Y), Xnew is X-1, location(Q, Xnew, Y), enemy(Q), write('ADA ('), write(Q), write(') DI SEBELAH BARAT! '), nl, !.
-checkingAround2 :- location(self, X, Y), Xnew is X-1, location(Q, Xnew, Y), weaponList(Q), write('Ada ('), write(Q), write(') di sebelah barat! '), nl, !.
-checkingAround2 :- location(self, X, Y), Xnew is X-1, location(Q, Xnew, Y), armorList(Q, _), write('Ada ('), write(Q), write(') di sebelah barat! '), nl, !.
-checkingAround2 :- location(self, X, Y), Xnew is X-1, location(Q, Xnew, Y), medicineList(Q), write('Ada ('), write(Q), write(') di sebelah barat! '), nl, !.
-checkingAround2 :- location(self, X, Y), Xnew is X-1, location(Q, Xnew, Y), ammoList(Q), write('Ada ('), write(Q), write(') di sebelah barat! '), nl, !.
-checkingAround2 :- location(self, X, Y), Xnew is X-1, location(_, Xnew, Y), write('Di baratmu adalah tanah kosong. '), nl, !.
+checkingGround :- location(self, X, Y), location(none, X, Y), write('Kamu berada di tanah kosong. '), nl, !.
+checkingGround :- location(self, X, Y), location(_, X, Y), write('Disekitarmu ada objek, gunakan (look.) untuk melihat.'), nl, !.
 
-checkingAround3 :- location(self, X, Y), Xnew is X+1, location(Q, Xnew, Y), enemy(Q), write('ADA ('), write(Q), write(') DI SEBELAH TIMUR! '), nl, !.
-checkingAround3 :- location(self, X, Y), Xnew is X+1, location(Q, Xnew, Y), weaponList(Q), write('Ada ('), write(Q), write(') di sebelah timur! '), nl, !.
-checkingAround3 :- location(self, X, Y), Xnew is X+1, location(Q, Xnew, Y), armorList(Q, _), write('Ada ('), write(Q), write(') di sebelah timur! '), nl, !.
-checkingAround3 :- location(self, X, Y), Xnew is X+1, location(Q, Xnew, Y), medicineList(Q), write('Ada ('), write(Q), write(') di sebelah timur! '), nl, !.
-checkingAround3 :- location(self, X, Y), Xnew is X+1, location(Q, Xnew, Y), ammoList(Q), write('Ada ('), write(Q), write(') di sebelah timur! '), nl, !.
-checkingAround3 :- location(self, X, Y), Xnew is X+1, location(_, Xnew, Y), write('Di timurmu adalah tanah kosong. '), nl, !.
-
-checkingAround4 :- location(self, X, Y), Ynew is Y-1, location(Q, X, Ynew), enemy(Q), write('ADA ('), write(Q), write(') DI SEBELAH UTARA! '), nl, !.
-checkingAround4 :- location(self, X, Y), Ynew is Y-1, location(Q, X, Ynew), weaponList(Q), write('Ada ('), write(Q), write(') di sebelah utara! '), nl, !.
-checkingAround4 :- location(self, X, Y), Ynew is Y-1, location(Q, X, Ynew), armorList(Q, _), write('Ada ('), write(Q), write(') di sebelah utara! '), nl, !.
-checkingAround4 :- location(self, X, Y), Ynew is Y-1, location(Q, X, Ynew), medicineList(Q), write('Ada ('), write(Q), write(') di sebelah utara! '), nl, !.
-checkingAround4 :- location(self, X, Y), Ynew is Y-1, location(Q, X, Ynew), ammoList(Q), write('Ada ('), write(Q), write(') di sebelah utara! '), nl, !.
-checkingAround4 :- location(self, X, Y), Ynew is Y-1, location(_, X, Ynew), write('Di utaramu adalah tanah kosong. '), nl, !.
-
-checkingAround5 :- location(self, X, Y), Ynew is Y+1, location(Q, X, Ynew), enemy(Q), write('ADA ('), write(Q), write(') DI SEBELAH SELATAN! '), nl, !.
-checkingAround5 :- location(self, X, Y), Ynew is Y+1, location(Q, X, Ynew), weaponList(Q), write('Ada ('), write(Q), write(') di sebelah selatan! '), nl, !.
-checkingAround5 :- location(self, X, Y), Ynew is Y+1, location(Q, X, Ynew), armorList(Q, _), write('Ada ('), write(Q), write(') di sebelah selatan! '), nl, !.
-checkingAround5 :- location(self, X, Y), Ynew is Y+1, location(Q, X, Ynew), medicineList(Q), write('Ada ('), write(Q), write(') di sebelah selatan! '), nl, !.
-checkingAround5 :- location(self, X, Y), Ynew is Y+1, location(Q, X, Ynew), ammoList(Q), write('Ada ('), write(Q), write(') di sebelah selatan! '), nl, !.
-checkingAround5 :- location(self, X, Y), Ynew is Y+1, location(_, X, Ynew), write('Di selatanmu adalah tanah kosong. '), nl, !.
-
+checkingAround2 :- location(self, X, Y), Xnew is X-1, location(Q, Xnew, Y), Q == fence, write('Ada PAGAR di sebelah barat! '), nl, !.
+checkingAround3 :- location(self, X, Y), Xnew is X+1, location(Q, Xnew, Y), Q == fence, write('Ada PAGAR di sebelah timur! '), nl, !.
+checkingAround4 :- location(self, X, Y), Ynew is Y-1, location(Q, X, Ynew), Q == fence, write('Ada PAGAR di sebelah utara! '), nl, !.
+checkingAround5 :- location(self, X, Y), Ynew is Y+1, location(Q, X, Ynew), Q == fence, write('Ada PAGAR di sebelah selatan! '), nl, !.
 /* Take */
 take(_) :- game(0), write('Kau belum memulai permainan.'), !.
 take(_):- isInventFull, write('Inventori kamu penuh.'), !.
