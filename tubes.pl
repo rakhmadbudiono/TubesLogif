@@ -332,5 +332,39 @@ attackR(X) :- retract(health(X, H)), H =< 0, assertz(health(X, 0)), retract(loca
 attackR(_) :- health(self, SCH), SCH =< 0, write('You are dead. Better be ready next time.'), nl, retract(game(_)), assertz(game(0)).
 
 /* Save */
+save(Name) :-
+	open(Name,write,Savedata),
+	health(self,HE),
+	weapon(self,WE),
+	armor(self,AR),
+	location(self,X,Y),
+	write(Savedata,HE),	write(Savedata,'.'),nl(Savedata),
+	write(Savedata,WE),	write(Savedata,'.'),nl(Savedata),
+	write(Savedata,AR),	write(Savedata,'.'),nl(Savedata),
+	write(Savedata,X),	write(Savedata,'.'),nl(Savedata),
+	write(Savedata,Y),	write(Savedata,'.'),nl(Savedata),
+	write('Data sudah tersimpan!'),nl,
+	close(Savedata).
 
 /* Load */
+	open(Name,read,Savedata),
+	health(self,HE),
+	weapon(self,WE),
+	armor(self,AR),
+	location(self,X,Y),
+	retract(health(self,HE)),
+	retract(weapon(self,WE)),
+	retract(armor(self,AR)),
+	retract(location(self,X,Y)),
+	read(Savedata,NewHE),
+	read(Savedata,NewWE),
+	read(Savedata,NewAR),
+	read(Savedata,NewX),
+	read(Savedata,NewY),
+	write('membaca save data berhasil...'),nl,
+	asserta(health(self,NewHE)),
+	asserta(weapon(self,NewWE)),
+	asserta(armor(self,NewAR)),
+	asserta(location(self,NewX,NewY)),
+	write('Load save data berhasil!'),nl,
+	close(Savedata).
