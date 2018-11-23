@@ -212,9 +212,8 @@ updateMap :- forall(between(2,9,Y),
    forall(between(2,9,X), (
       location(Q,X,Y), setMap(Q,X,Y)
    )
-)), !.
+)), location(self, X, Y), setPixel(X,Y,'P'), !.
 
-setMap(Q, X, Y) :- Q == self,setPixel(X,Y,'P'), !.
 setMap(_, X, Y) :- setPixel(X, Y, '-').
 
 /* Buat baca data dari peta.txt */
