@@ -123,6 +123,7 @@ assignNonObject :- forall(between(2,9,Y),
 )), !.
 
 assigning(X, Y) :- not(location(_,X,Y)), asserta(location(none,X,Y)), !.
+assigning(X, Y) :- location(self,X,Y), asserta(location(none,X,Y)), !.
 assigning(_,_).
 
 assignFence :- forall(between(1,10,Y), (assigningFence(1,Y), assigningFence(10,Y))),
@@ -189,7 +190,8 @@ checkingAround1 :- location(self, X, Y), location(Q, X, Y), weaponList(Q), write
 checkingAround1 :- location(self, X, Y), location(Q, X, Y), armorList(Q, _), write('Ada ('), write(Q), write(') di tanah! '), nl, fail.
 checkingAround1 :- location(self, X, Y), location(Q, X, Y), medicineList(Q), write('Ada ('), write(Q), write(') di tanah! '), nl, fail.
 checkingAround1 :- location(self, X, Y), location(Q, X, Y), ammoList(Q), write('Ada ('), write(Q), write(') di tanah! '), nl, fail.
-checkingAround1 :- location(self, X, Y), location(none, X, Y), write('Kamu berada di tanah kosong. '), nl, !, fail.
+checkingAround1 :- location(self, X, Y), location(none, X, Y), write('Kamu berada di tanah kosong. '), nl, !.
+checkingAround1 :- location(_, _, _).
 
 printMap(_,Y) :- Y == 1, write('X'), !.
 printMap(_,Y) :- Y == 10, write('X'), !.
@@ -258,14 +260,18 @@ e :- retract(location(self, A,B)), C is A+1, asserta(location(self, C,B)), assig
 
 checkingAround :- checkingGround, checkingAround2, checkingAround3, checkingAround4, checkingAround5.
 
-
 checkingGround :- location(self, X, Y), location(none, X, Y), write('Kamu berada di tanah kosong. '), nl, !.
 checkingGround :- location(self, X, Y), location(_, X, Y), write('Disekitarmu ada objek, gunakan (look.) untuk melihat.'), nl, !.
 
 checkingAround2 :- location(self, X, Y), Xnew is X-1, location(Q, Xnew, Y), Q == fence, write('Ada PAGAR di sebelah barat! '), nl, !.
+checkingAround2 :- !.
 checkingAround3 :- location(self, X, Y), Xnew is X+1, location(Q, Xnew, Y), Q == fence, write('Ada PAGAR di sebelah timur! '), nl, !.
+checkingAround3 :- !.
 checkingAround4 :- location(self, X, Y), Ynew is Y-1, location(Q, X, Ynew), Q == fence, write('Ada PAGAR di sebelah utara! '), nl, !.
+checkingAround4 :- !.
 checkingAround5 :- location(self, X, Y), Ynew is Y+1, location(Q, X, Ynew), Q == fence, write('Ada PAGAR di sebelah selatan! '), nl, !.
+checkingAround5 :- !.
+
 /* Take */
 take(_) :- game(0), write('Kau belum memulai permainan.'), !.
 take(_):- isInventFull, write('Inventori kamu penuh.'), !.
@@ -300,7 +306,6 @@ notMoreThan100 :- health(self, HE), HE > 100, retract(health(self, _)), assertz(
 attack :- \+ game(1), write('Kamu belum memulai permainan'), !.
 attack :- enemy(E), location(self, X, Y), location(E, X, Y), health(E, H), H == 0, !.
 attack :- enemy(E), location(self, X, Y), location(E, X, Y), attackR(E), !.
-
 
 /* Status */
 status :- game(0), write('Kau belum memulai permainan.'), fail, !.
