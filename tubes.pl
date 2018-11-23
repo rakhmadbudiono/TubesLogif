@@ -7,6 +7,11 @@ Nama Anggota :
   - Rakhmad Budiono 13517151 */
 
 /* Fact */
+:- dynamic(count/1).
+:- dynamic(dead/1).
+dead(1).
+count(0).
+
 enemy(shinobiSuna).
 enemy(shinobiKiri).
 enemy(shinobiIwa).
@@ -115,6 +120,8 @@ start :- write("Selamat datang di desa Konoha"), nl,
 
 	assignNonObject,
 	assignFence,
+	assignDead(1),
+	assignDead(10),
 
 	asserta(game(1)).
 
@@ -131,6 +138,10 @@ assignFence :- forall(between(1,10,Y), (assigningFence(1,Y), assigningFence(10,Y
 
 assigningFence(X,Y) :- asserta(location(fence,X,Y)), !.
 assigningFence(_, _).
+
+assignDead(X) :- forall(between(1,10,Y), (asserta(location(deadzone,Y,X)),asserta(location(deadzone,X,Y)), setPixel(X,Y,'X'), setPixel(Y,X,'X'), delxp(X,Y), delxp(Y,X))).
+delxp(X, Y) :- location(A, X, Y), A \= fence, A \= deadzone, retract(location(A,X,Y)).
+delxp(X, Y) :- location(_,_,_).
 
 change([_|Tail],[C|Tail],C,0) :- !.
 change([A|Tail],[A|LBaru],C,Indeks) :- IndeksBaru is Indeks-1, change(Tail,LBaru,C,IndeksBaru).
@@ -214,8 +225,8 @@ updateMap :- forall(between(2,9,Y),
    )
 )), location(self, X, Y), setPixel(X,Y,'P'), !.
 
-setMap(_, X, Y) :- setPixel(X, Y, '-').
-
+setMap(_, X, Y) :- \+location(deadzone, X, Y), setPixel(X, Y, '-').
+setMap(_, _, _) :- location(_,_,_).
 /* Buat baca data dari peta.txt */
 readData(S,[]) :- at_end_of_stream(S), !.
 
@@ -245,17 +256,31 @@ printList([]) :- !.
 printList([A|Tail]) :- write(A), printList(Tail).
 
 /* Move */
+lookcnt :- count(X), write(X), dead(Y), nl, write(Y), nl, writedead.
+writedead :- forall(between(1,10,X),(forall(between(1,10,Y), writeactual(X, Y)))).
+writeactual(X, Y) :- location(deadzone,X,Y), write(X), write(' '), write(Y), nl.
+writeactual(X, Y) :- location(_,_,_).
+
 n :- location(self, _,B), B == 2, write('Selamat, anda menabrak pagar!'), !.
-n :- retract(location(self, A,B)), C is B-1, asserta(location(self, A,C)), assigning(A, B), updateMap, checkingAround, !.
+n :- retract(location(self, A,B)), C is B-1, asserta(location(self, A,C)), assigning(A, B), checkingAround, retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), deadzoneTrav, deadzoneCheck, updateMap,!.
 
 s :- location(self, _,B), B == 9, write('Selamat, anda menabrak pagar!'), !.
-s :- retract(location(self, A,B)), C is B+1, asserta(location(self, A,C)), assigning(A, B), updateMap, checkingAround, !.
+s :- retract(location(self, A,B)), C is B+1, asserta(location(self, A,C)), assigning(A, B), checkingAround, retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), deadzoneTrav, deadzoneCheck, updateMap,!.
 
 w :- location(self, A,_), A == 2, write('Selamat, anda menabrak pagar!'), !.
-w :- retract(location(self, A,B)), C is A-1, asserta(location(self, C,B)), assigning(A, B), updateMap, checkingAround, !.
+w :- retract(location(self, A,B)), C is A-1, asserta(location(self, C,B)), assigning(A, B), checkingAround, retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), deadzoneTrav, deadzoneCheck, updateMap,!.
 
 e :- location(self, A,_), A == 9, write('Selamat, anda menabrak pagar!'), !.
-e :- retract(location(self, A,B)), C is A+1, asserta(location(self, C,B)), assigning(A, B), updateMap, checkingAround, !.
+e :- retract(location(self, A,B)), C is A+1, asserta(location(self, C,B)), assigning(A, B), checkingAround, retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)),deadzoneTrav,  deadzoneCheck, updateMap,!.
+
+deadzoneTrav :- count(Cnt), Cnt == 10, retract(dead(DCnt)), DCntNew is DCnt + 1, asserta(dead(DCntNew)), retract(count(DUMP)), asserta(count(1)), deadzoneDraw, !.
+deadzoneTrav :- location(_,_,_).
+deadzoneDraw :- write('Deadzone mendekat'), dead(X), Xnew is X, assignDead(Xnew), Dimp is 11-Xnew, assignDead(Dimp).
+deadzoneDraw :- location(_,_,_).
+deadzoneCheck :- location(self, X, Y), location(deadzone, X, Y), killPlayer, !.
+deadzoneCheck :- location(_,_,_).
+
+killPlayer :- write('ANDA MATI CYKA BLYAT'), !.
 
 checkingAround :- checkingGround, checkingAround2, checkingAround3, checkingAround4, checkingAround5.
 
@@ -290,7 +315,7 @@ dropInvent(X, [H | T], [H | TX]) :- dropInvent(X, T, TX).
 
 dropHand :- retract(inventory(L)), dropInvent(hand, L, Y), assertz(inventory(Y)).
 
-/* Use */
+/* Use */ 
 use(_) :- \+ game(1), write('Kamu belum memulai permainan'), !.
 use(X) :- weaponList(X), retract(equipment(W)), retract(inventory(L)),
 	dropInvent(X, L, Y), assertz(inventory([W |Y])), dropHand, assertz(equipment(X)),!.
@@ -332,39 +357,5 @@ attackR(X) :- retract(health(X, H)), H =< 0, assertz(health(X, 0)), retract(loca
 attackR(_) :- health(self, SCH), SCH =< 0, write('You are dead. Better be ready next time.'), nl, retract(game(_)), assertz(game(0)).
 
 /* Save */
-save(Name) :-
-	open(Name,write,Savedata),
-	health(self,HE),
-	weapon(self,WE),
-	armor(self,AR),
-	location(self,X,Y),
-	write(Savedata,HE),	write(Savedata,'.'),nl(Savedata),
-	write(Savedata,WE),	write(Savedata,'.'),nl(Savedata),
-	write(Savedata,AR),	write(Savedata,'.'),nl(Savedata),
-	write(Savedata,X),	write(Savedata,'.'),nl(Savedata),
-	write(Savedata,Y),	write(Savedata,'.'),nl(Savedata),
-	write('Data sudah tersimpan!'),nl,
-	close(Savedata).
 
 /* Load */
-	open(Name,read,Savedata),
-	health(self,HE),
-	weapon(self,WE),
-	armor(self,AR),
-	location(self,X,Y),
-	retract(health(self,HE)),
-	retract(weapon(self,WE)),
-	retract(armor(self,AR)),
-	retract(location(self,X,Y)),
-	read(Savedata,NewHE),
-	read(Savedata,NewWE),
-	read(Savedata,NewAR),
-	read(Savedata,NewX),
-	read(Savedata,NewY),
-	write('membaca save data berhasil...'),nl,
-	asserta(health(self,NewHE)),
-	asserta(weapon(self,NewWE)),
-	asserta(armor(self,NewAR)),
-	asserta(location(self,NewX,NewY)),
-	write('Load save data berhasil!'),nl,
-	close(Savedata).
