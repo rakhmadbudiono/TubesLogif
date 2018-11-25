@@ -384,8 +384,8 @@ attackR(X) :- game(1), enemy(X), location(X, A, O), location(self, A, O),
 	ECH > 0,
 	write('The '), write(X), write(' health is '), write(ECH), nl,!.
 
-attackR(X) :- retract(health(X, H)), H =< 0, assertz(health(X, 0)), retract(location(X, A, B)),
-	write('The '), write(X), write(' is dead!'), nl, weapon(X,P), asserta(location(P,A,B)), write('The enemy drops a '), write(P),!.
+attackR(X) :- retract(health(X, H)), H =< 0, assert(health(X,0)), location(self,T,T1), retract(location(X, T, T1)), weapon(X,P), asserta(location(P,T,T1)),
+	write('The '), write(X), write(' is dead!'), nl,  write('The enemy drops a '), write(P),!.
 
 attackR(_) :- health(self, SCH), SCH =< 0, write('You are dead. Better be ready next time.'), nl, retract(game(_)), assertz(game(0)).
 
