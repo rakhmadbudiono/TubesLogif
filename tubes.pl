@@ -263,7 +263,7 @@ countEnemies :- retract(nEnemy(_)), asserta(nEnemy(0)), forall(enemy(X),
 /* Win Condition */
 isWin :- countEnemies, nEnemy(0), retract(game(_)), asserta(game(0)),
 	write('Selamat bapak Ericko Lim, Anda telah menyelesaikan misi tingat S ini!'), nl,
-	write('Anda telah diangat oleh masyarakat desa Konoha menjadi Hokage ke-8'), nl,
+	write('Anda telah diangkat oleh masyarakat desa Konoha menjadi Hokage ke-69'), nl,
 	write('#2019GantiHokage').
 
 /* Help */
@@ -380,25 +380,25 @@ writeactual(_, _) :- location(_,_,_).
 
 n :- game(0), write('Kamu belum memulai permainan'), !.
 n :- isWin, !.
-n :- location(self, _,B), B == 2, write('Selamat, anda menabrak pagar!'), !.
+n :- location(self, _,B), B == 2, write('Kau mengacuhkan peringatan dari suara di kepalamu, dengan sekuat tenaga kau tetap berlari sekencang-kencangnya berharap pagar didepanmu hanya fiksi belaka, dan..... Selamat, anda menabrak pagar!'), !.
 n :- retract(location(self, A,B)), C is B-1, asserta(location(self, A,C)), assigning(A, B), checkingAround,
 	retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), droprandom, deadzoneTrav, deadzoneCheck, updateMap, enemiesTurn, !.
 
 s :- game(0), write('Kamu belum memulai permainan'), !.
 s :- isWin, !.
-s :- location(self, _,B), B == 9, write('Selamat, anda menabrak pagar!'), !.
+s :- location(self, _,B), B == 9, write('Kau mengacuhkan peringatan dari suara di kepalamu, dengan sekuat tenaga kau tetap berlari sekencang-kencangnya berharap pagar didepanmu hanya fiksi belaka, dan..... Selamat, anda menabrak pagar!'), !.
 s :- retract(location(self, A,B)), C is B+1, asserta(location(self, A,C)), assigning(A, B), checkingAround,
 	retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), droprandom, deadzoneTrav, deadzoneCheck, updateMap, enemiesTurn, !.
 
 w :- game(0), write('Kamu belum memulai permainan'), !.
 w :- isWin, !.
-w :- location(self, A,_), A == 2, write('Selamat, anda menabrak pagar!'), !.
+w :- location(self, A,_), A == 2, write('Kau mengacuhkan peringatan dari suara di kepalamu, dengan sekuat tenaga kau tetap berlari sekencang-kencangnya berharap pagar didepanmu hanya fiksi belaka, dan..... Selamat, anda menabrak pagar!'), !.
 w :- retract(location(self, A,B)), C is A-1, asserta(location(self, C,B)), assigning(A, B), checkingAround,
 	retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), droprandom, deadzoneTrav, deadzoneCheck, updateMap, enemiesTurn, !.
 
 e :- game(0), write('Kamu belum memulai permainan'), !.
 e :- isWin, !.
-e :- location(self, A,_), A == 9, write('Selamat, anda menabrak pagar!'), !.
+e :- location(self, A,_), A == 9, write('Kau mengacuhkan peringatan dari suara di kepalamu, dengan sekuat tenaga kau tetap berlari sekencang-kencangnya berharap pagar didepanmu hanya fiksi belaka, dan..... Selamat, anda menabrak pagar!'), !.
 e :- retract(location(self, A,B)), C is A+1, asserta(location(self, C,B)), assigning(A, B), checkingAround,
 	retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), droprandom, deadzoneTrav,  deadzoneCheck, updateMap, enemiesTurn, !.
 
@@ -406,24 +406,24 @@ deadzoneTrav :- count(Cnt), Cnt == 10, retract(dead(DCnt)), DCntNew is DCnt + 1,
 deadzoneTrav :- location(_,_,_).
 deadzoneDraw :- write('Deadzone mendekat'), dead(X), Xnew is X, assignDead(Xnew), Dimp is 11-Xnew, assignDead(Dimp).
 deadzoneDraw :- location(_,_,_).
-deadzoneCheck :- location(self, X, Y), location(deadzone, X, Y), retract(health(self, Z)), Znew is Z - 10,write('Jalan-jalan di deadzone, hp-10'),nl, asserta(health(self, Znew)), death, !.
+deadzoneCheck :- location(self, X, Y), location(deadzone, X, Y), retract(health(self, Z)), Znew is Z - 10,write('Jalan-jalan di deadzone tidak pernah baik bagi kesehatan siapapun, hp-10'),nl, asserta(health(self, Znew)), death, !.
 deadzoneCheck :- location(_,_,_).
 
 death :- health(self,X), X =< 0, killPlayer.
 death :- location(_,_,_).
 droprandom :- count(Cnt), Cnt == 9, random(1, 10, X), forall(between(2, X, _), (random(1,4,Sup), supplydrop(Sup))).
 droprandom :- location(_,_,_).
-supplydrop(Z) :- Z == 1, random(2, 9, X), random(2, 9, Y), asserta(location(katsuyu, X, Y)), write('ErickoLiem : winner winner chicken dinner! (katsuyu has been dropped at '), write(X), write(','), write(Y), write(')'), nl.
-supplydrop(Z) :- Z == 2, random(2, 9, X), random(2, 9, Y), asserta(location(rasengan, X, Y)), write('ErickoLiem : winner winner chicken dinner! (rasengan has been dropped at '), write(X), write(','), write(Y), write(')'), nl.
-supplydrop(Z) :- Z == 3, random(2, 9, X), random(2, 9, Y), asserta(location(kunaiThrower, X, Y)), write('ErickoLiem : winner winner chicken dinner! (kunaiThrower has been dropped at '), write(X), write(','), write(Y), write(')'), nl.
-supplydrop(Z) :- Z == 4, random(2, 9, X), random(2, 9, Y), asserta(location(kunai, X, Y)), write('ErickoLiem : winner winner chicken dinner! (kunai has been dropped at '), write(X), write(','), write(Y), write(')'), nl.
+supplydrop(Z) :- Z == 1, random(2, 9, X), random(2, 9, Y), asserta(location(katsuyu, X, Y)), write('Papa Franku : winner winner chicken dinner! (katsuyu has been dropped at '), write(X), write(','), write(Y), write(')'), nl.
+supplydrop(Z) :- Z == 2, random(2, 9, X), random(2, 9, Y), asserta(location(rasengan, X, Y)), write('Papa Franku : winner winner chicken dinner! (rasengan has been dropped at '), write(X), write(','), write(Y), write(')'), nl.
+supplydrop(Z) :- Z == 3, random(2, 9, X), random(2, 9, Y), asserta(location(kunaiThrower, X, Y)), write('Papa Franku : winner winner chicken dinner! (kunaiThrower has been dropped at '), write(X), write(','), write(Y), write(')'), nl.
+supplydrop(Z) :- Z == 4, random(2, 9, X), random(2, 9, Y), asserta(location(kunai, X, Y)), write('Papa Franku : winner winner chicken dinner! (kunai has been dropped at '), write(X), write(','), write(Y), write(')'), nl.
 killPlayer :- write('omaewa mo shindeiru'), retract(game(_)), asserta(game(0)), !.
 nani :- retract(game(_)), asserta(game(1)), retract(health(self, _)), asserta(health(self, 100)), write('Reanimated'), nl.
 nani :- location(_,_,_).
 checkingAround :- checkingGround, checkingAround2, checkingAround3, checkingAround4, checkingAround5.
 
-checkingGround :- location(self, X, Y), location(none, X, Y), write('Kamu berada di tanah kosong. '), nl, !.
-checkingGround :- location(self, X, Y), location(_, X, Y), write('Disekitarmu ada objek, gunakan (look.) untuk melihat.'), nl, !.
+checkingGround :- location(self, X, Y), location(none, X, Y), write('Kamu berada di tanah kosong, kamu berpikir apa di game ini hanya ada tanah kosong, dan kenapa kamu berada di sebuh game? '), nl, !.
+checkingGround :- location(self, X, Y), location(_, X, Y), write('Kakimu menyentuh sesuatu saat melangkah disekitar tanah yang kau yakin dari jauh tidak terlihat apa apa, Disekitarmu ada objek, gunakan (look.) untuk melihat.'), nl, !.
 
 checkingAround2 :- location(self, X, Y), Xnew is X-1, location(Q, Xnew, Y), Q == fence, write('Ada PAGAR di sebelah barat! '), nl, !.
 checkingAround2 :- !.
@@ -438,13 +438,13 @@ checkingAround5 :- !.
 take(_) :- game(0), write('Kau belum memulai permainan.'), !.
 take(_):- isInventFull(1), write('Inventori kamu penuh.'), !.
 take(A) :- location(self, X, Y), isInventFull(0), location(A, X, Y), weaponList(A), write('Kau mengambil '), allName(A, N), write(N), nl,
-	retract(location(A,X,Y)), retract(inventory(L)), assertz(inventory([A | L])), inventory(Q), cekInventfull(Q),!.
+	retract(location(A,X,Y)), retract(inventory(L)), assertz(inventory([A | L])), inventory(Q), cekInventfull(Q), retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), droprandom, deadzoneTrav, deadzoneCheck, updateMap, enemiesTurn, !.
 take(A) :- location(self, X, Y), isInventFull(0), location(A, X, Y), consumable(A), write('Kau mengambil '), allName(A, N), write(N), nl,
-	retract(location(A,X,Y)), retract(inventory(L)), assertz(inventory([A | L])), inventory(Q), cekInventfull(Q),!.
+	retract(location(A,X,Y)), retract(inventory(L)), assertz(inventory([A | L])), inventory(Q), cekInventfull(Q), retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), droprandom, deadzoneTrav, deadzoneCheck, updateMap, enemiesTurn, !.
 take(A) :- location(self, X, Y), isInventFull(0), location(A, X, Y), ammoList(A), write('Kau mengambil '), allName(A, N), write(N), nl,
-	retract(location(A,X,Y)), retract(inventory(L)), assertz(inventory([A | L])), inventory(Q), cekInventfull(Q), location(B,X,Y), cekEmpty(B,X,Y), !.
+	retract(location(A,X,Y)), retract(inventory(L)), assertz(inventory([A | L])), inventory(Q), cekInventfull(Q), location(B,X,Y), cekEmpty(B,X,Y), retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), droprandom, deadzoneTrav, deadzoneCheck, updateMap, enemiesTurn, !.
 take(A) :- location(self, X, Y), isInventFull(0), location(A, X, Y), armorList(A,_), write('Kau mengambil '), allName(A, N), write(N), nl,
-	retract(location(A,X,Y)), retract(inventory(L)), assertz(inventory([A | L])), inventory(Q), cekInventfull(Q), location(B,X,Y), cekEmpty(B,X,Y), !.
+	retract(location(A,X,Y)), retract(inventory(L)), assertz(inventory([A | L])), inventory(Q), cekInventfull(Q), location(B,X,Y), cekEmpty(B,X,Y), retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), droprandom, deadzoneTrav, deadzoneCheck, updateMap, enemiesTurn, !.
 take(_):- location(self,X,Y), location(none,X,Y), write('Tidak ada apapun'),!.
 
 cekInventfull(X):-length(X,Y), Y < 5, retract(isInventFull(_)), assertz(isInventFull(0)),!.
@@ -456,7 +456,7 @@ cekEmpty(_,X,Y):- asserta(location(none,X,Y)).
 /* Drop */
 drop(_) :- game(0), write('Kau belum memulai permainan.'), !.
 drop(X) :- game(1), inventory(I), member(X, I), retract(inventory(L)), delete_one(X, L, Y), assertz(inventory(Y)), location(self, A, O), assertz(location(X, A,O)),
-	write('Kau membuang '), write(X), nl,!.
+	write('Kau membuang '), write(X), nl, retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), droprandom, deadzoneTrav, deadzoneCheck, updateMap, enemiesTurn, !.
 
 dropInvent(_, [], _) :- !.
 dropInvent(X, [H | T], T) :- allName(X, Z), allName(H, Z), !.
@@ -471,14 +471,14 @@ delete_one(X,[Y|Xs],[Y|Ys]):-X \= Y, delete_one(X,Xs,Ys).
 
 /* Use */
 use(_) :- game(0), write('Kamu belum memulai permainan'), !.
-use(X) :- weaponList(X), inventory(I), member(X,I), weapon(self, none), retract(weapon(self,none)),assertz(weapon(self, X)), retract(inventory(I)), delete_one(X,I,L), assertz(inventory(L)),!.
+use(X) :- weaponList(X), inventory(I), member(X,I), weapon(self, none), retract(weapon(self,none)),assertz(weapon(self, X)), retract(inventory(I)), delete_one(X,I,L), assertz(inventory(L)), retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), droprandom, deadzoneTrav, deadzoneCheck, updateMap, enemiesTurn,!.
 use(X) :- weaponList(X), inventory(I), member(X,I), retract(weapon(self, W)), retract(inventory(L)),
-	delete_one(X, L, Y), assertz(inventory([W|Y])), assertz(weapon(self, X)),!.
-use(X) :- consumable(X), inventory(I), member(X, I), retract(inventory(I)), delete_one(X, I, Y), assertz(inventory(Y)), useConsumable(X), notMoreThan100, write(X),write(' menyembuhkan anda'), !.
-use(X) :- armorList(X,H), inventory(I), member(X,I),armor(self, none, _), retract(armor(self,none,_)),assertz(armor(self, X, H)),retract(inventory(I)),delete_one(X,I,L), assertz(inventory(L)),!.
+	delete_one(X, L, Y), assertz(inventory([W|Y])), assertz(weapon(self, X)), retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), droprandom, deadzoneTrav, deadzoneCheck, updateMap, enemiesTurn,!.
+use(X) :- consumable(X), inventory(I), member(X, I), retract(inventory(I)), delete_one(X, I, Y), assertz(inventory(Y)), useConsumable(X), notMoreThan100, write(X),write(' menyembuhkan anda'), retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), droprandom, deadzoneTrav, deadzoneCheck, updateMap, enemiesTurn,!.
+use(X) :- armorList(X,H), inventory(I), member(X,I),armor(self, none, _), retract(armor(self,none,_)),assertz(armor(self, X, H)),retract(inventory(I)),delete_one(X,I,L), assertz(inventory(L)), retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), droprandom, deadzoneTrav, deadzoneCheck, updateMap, enemiesTurn,!.
 use(X) :- armorList(X,H), inventory(I), member(X,I), retract(armor(self, W, _)), retract(inventory(L)),
-	delete_one(X, L, Y), assertz(inventory([W|Y])), assertz(armor(self, X, H)),!.
-	use(X) :- ammoList(X), inventory(I), member(X,I), retract(inventory(I)), delete_one(X, I, Y), assertz(inventory(Y)), assocAmmo(X,P), retract(ammo(P,O)), Temp is O + 5, assertz(ammo(P,Temp)),!.
+	delete_one(X, L, Y), assertz(inventory([W|Y])), assertz(armor(self, X, H)), retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), droprandom, deadzoneTrav, deadzoneCheck, updateMap, enemiesTurn,!.
+	use(X) :- ammoList(X), inventory(I), member(X,I), retract(inventory(I)), delete_one(X, I, Y), assertz(inventory(Y)), assocAmmo(X,P), retract(ammo(P,O)), Temp is O + 5, assertz(ammo(P,Temp)), retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), droprandom, deadzoneTrav, deadzoneCheck, updateMap, enemiesTurn,!.
 use(_) :- write('Anda tidak punya itu').
 assocAmmo(chakra,c).
 assocAmmo(kunai,k).
@@ -498,7 +498,7 @@ attack :- enemy(E), location(self,X,Y), location(E,X,Y), weapon(self,none), writ
 attack :- enemy(E), location(self, X, Y), location(E, X, Y), inventory(_), weapon(self,Q), ammospec(Q,R),  ammo(R,W), W == 0, write('Ammomu kosong!'), nl, retract(weapon(self,Q)), asserta(weapon(self,none)), attackR(E), retract(weapon(self,none)), asserta(weapon(self,Q)),!.
 attack :- enemy(E), location(self, X, Y), location(E, X, Y), inventory(_), weapon(self,Q), ammospec(Q,R),  ammo(R,W), health(E, H), H == 0, retract(ammo(R,W)), W1 is W-1, assertz(ammo(R,W1)),!.
 attack :- enemy(E), location(self, X, Y), location(E, X, Y), inventory(_), weapon(self,Q), ammospec(Q,R),  ammo(R,W), attackR(E), retract(ammo(R,W)), W1 is W-1, assertz(ammo(R,W1)), !.
-attack :- write('Anda menyerang angin!'),!.
+attack :- write('Entah kenapa kau baru sadar bahwa semua ini adalah sesuatu yang melelahkan, kau memukul sekuat tenaga kepada apapun yang ada didepanmu, Anda menyerang angin!'),!.
 
 ammospec(kunaiThrower,k).
 ammospec(shurikenThrower,s).
@@ -527,7 +527,7 @@ attackR(X) :- game(1), enemy(X), location(X, A, O), location(self, A, O),
 	SCH > 0,
 	write('Your health is '), write(SCH), nl,
 	ECH > 0,
-	write('The '), write(X), write(' health is '), write(ECH), nl,!.
+	write('The '), write(X), write(' health is '), write(ECH), nl, retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), droprandom, deadzoneTrav, deadzoneCheck, updateMap, enemiesTurn, !.
 
 attackR(_) :- health(self, SCH), SCH =< 0, write('YOU DIE.'), nl, retract(game(_)), assertz(game(0)), !.
 attackR(X) :- retract(health(X, H)), H =< 0, asserta(health(X,0)), location(self,T,T1), retract(location(X, T, T1)), weapon(X,P), asserta(location(P,T,T1)),
