@@ -1,0 +1,2 @@
+setmap urg tambahin
+dari line 282(deadzonetrav) sampe 298(nani)

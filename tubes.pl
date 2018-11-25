@@ -231,6 +231,7 @@ updateMap :- forall(between(2,9,Y),
 )), location(self, X, Y), setPixel(X,Y,'P'), !.
 
 setMap(_, X, Y) :- \+location(deadzone, X, Y), setPixel(X, Y, '-').
+setMap(_, X, Y) :- location(deadzone, X, Y), setPixel(X, Y, 'X').
 setMap(_, _, _) :- location(_,_,_).
 /* Buat baca data dari peta.txt */
 readData(S,[]) :- at_end_of_stream(S), !.
@@ -267,26 +268,34 @@ writeactual(X, Y) :- location(deadzone,X,Y), write(X), write(' '), write(Y), nl.
 writeactual(_, _) :- location(_,_,_).
 
 n :- location(self, _,B), B == 2, write('Selamat, anda menabrak pagar!'), !.
-n :- retract(location(self, A,B)), C is B-1, asserta(location(self, A,C)), assigning(A, B), checkingAround, retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), deadzoneTrav, deadzoneCheck, updateMap,!.
+n :- retract(location(self, A,B)), C is B-1, asserta(location(self, A,C)), assigning(A, B), checkingAround, retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), droprandom, deadzoneTrav, deadzoneCheck, updateMap,!.
 
 s :- location(self, _,B), B == 9, write('Selamat, anda menabrak pagar!'), !.
-s :- retract(location(self, A,B)), C is B+1, asserta(location(self, A,C)), assigning(A, B), checkingAround, retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), deadzoneTrav, deadzoneCheck, updateMap,!.
+s :- retract(location(self, A,B)), C is B+1, asserta(location(self, A,C)), assigning(A, B), checkingAround, retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), droprandom, deadzoneTrav, deadzoneCheck, updateMap,!.
 
 w :- location(self, A,_), A == 2, write('Selamat, anda menabrak pagar!'), !.
-w :- retract(location(self, A,B)), C is A-1, asserta(location(self, C,B)), assigning(A, B), checkingAround, retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), deadzoneTrav, deadzoneCheck, updateMap,!.
+w :- retract(location(self, A,B)), C is A-1, asserta(location(self, C,B)), assigning(A, B), checkingAround, retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), droprandom, deadzoneTrav, deadzoneCheck, updateMap,!.
 
 e :- location(self, A,_), A == 9, write('Selamat, anda menabrak pagar!'), !.
-e :- retract(location(self, A,B)), C is A+1, asserta(location(self, C,B)), assigning(A, B), checkingAround, retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)),deadzoneTrav,  deadzoneCheck, updateMap,!.
+e :- retract(location(self, A,B)), C is A+1, asserta(location(self, C,B)), assigning(A, B), checkingAround, retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), droprandom, deadzoneTrav,  deadzoneCheck, updateMap,!.
 
 deadzoneTrav :- count(Cnt), Cnt == 10, retract(dead(DCnt)), DCntNew is DCnt + 1, asserta(dead(DCntNew)), retract(count(_)), asserta(count(1)), deadzoneDraw, !.
 deadzoneTrav :- location(_,_,_).
 deadzoneDraw :- write('Deadzone mendekat'), dead(X), Xnew is X, assignDead(Xnew), Dimp is 11-Xnew, assignDead(Dimp).
 deadzoneDraw :- location(_,_,_).
-deadzoneCheck :- location(self, X, Y), location(deadzone, X, Y), killPlayer, !.
+deadzoneCheck :- location(self, X, Y), location(deadzone, X, Y), retract(health(self, Z)), Znew is Z - 10,write('Jalan-jalan di deadzone, hp-10'),nl, asserta(health(self, Znew)), death, !.
 deadzoneCheck :- location(_,_,_).
-
-killPlayer :- write('ANDA MATI CYKA BLYAT'), retract(game(X)), asserta(game(0)), !.
-
+death :- health(self,X), X =< 0, killPlayer.
+death :- location(_,_,_).
+droprandom :- count(Cnt), Cnt == 9, random(1, 10, X), forall(between(2, X, Z), (random(1,4,Sup), supplydrop(Sup))).
+droprandom :- location(_,_,_).
+supplydrop(Z) :- Z == 1, random(2, 9, X), random(2, 9, Y), asserta(location(katsuyu, X, Y)), write('ErickoLiem : winner winner chicken dinner! (katsuyu has been dropped at '), write(X), write(','), write(Y), write(')'), nl.
+supplydrop(Z) :- Z == 2, random(2, 9, X), random(2, 9, Y), asserta(location(rasengan, X, Y)), write('ErickoLiem : winner winner chicken dinner! (rasengan has been dropped at '), write(X), write(','), write(Y), write(')'), nl.
+supplydrop(Z) :- Z == 3, random(2, 9, X), random(2, 9, Y), asserta(location(kunaiThrower, X, Y)), write('ErickoLiem : winner winner chicken dinner! (kunaiThrower has been dropped at '), write(X), write(','), write(Y), write(')'), nl.
+supplydrop(Z) :- Z == 4, random(2, 9, X), random(2, 9, Y), asserta(location(kunai, X, Y)), write('ErickoLiem : winner winner chicken dinner! (kunai has been dropped at '), write(X), write(','), write(Y), write(')'), nl.
+killPlayer :- write('omaewa mo shindeiru'), retract(game(X)), asserta(game(0)), !.
+nani :- retract(game(F)), asserta(game(1)), retract(health(self, X)), asserta(health(self, 100)), write('Reanimated'), nl.
+nani :- location(_,_,_).
 checkingAround :- checkingGround, checkingAround2, checkingAround3, checkingAround4, checkingAround5.
 
 checkingGround :- location(self, X, Y), location(none, X, Y), write('Kamu berada di tanah kosong. '), nl, !.
