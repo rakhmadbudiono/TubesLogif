@@ -104,7 +104,7 @@ start :- write('Selamat datang di desa Konoha'), nl,
 	write(' attack. -- serang musuh yang menghalangi jalanmu'),nl,
 	write(' status. -- menunjukkan status kamu'),nl,
 	write(' save(Filename). -- simpan permainan'),nl,
-	write(' load(Filename). -- load permainan'),nl,
+	write(' loaddata(Filename). -- load permainan'),nl,
 	nl,
 	write('Objek:'),nl,
 	write('W = senjata'),nl,
@@ -280,7 +280,7 @@ help :- write('Perintah yang tersedia:'), nl,
 	write(' attack. -- serang musuh yang menghalangi jalanmu'),nl,
 	write(' status. -- menunjukkan status kamu'),nl,
 	write(' save(Filename). -- simpan permainan'),nl,
-	write(' load(Filename). -- load permainan'),nl.
+	write(' loaddata(Filename). -- load permainan'),nl.
 
 /* Quit */
 quit :- write('Credits :'), nl,
