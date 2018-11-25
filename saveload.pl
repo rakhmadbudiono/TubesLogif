@@ -10,7 +10,6 @@ save(Name) :-
 	location(deadzone,DX,DY),
 	dead(ND),
 	count(CD),
-	assignDead(AD),
 	write(Savedata,HE),	write(Savedata,'.'),nl(Savedata),
 	write(Savedata,WE),	write(Savedata,'.'),nl(Savedata),
 	write(Savedata,AR),	write(Savedata,'.'),nl(Savedata),
@@ -21,7 +20,6 @@ save(Name) :-
 	write(Savedata,DY),	write(Savedata,'.'),nl(Savedata),
 	write(Savedata,ND),	write(Savedata,'.'),nl(Savedata),
 	write(Savedata,CD),	write(Savedata,'.'),nl(Savedata),
-	write(Savedata,AD),	write(Savedata,'.'),nl(Savedata),
 	write('Data sudah tersimpan!'),nl,
 	close(Savedata).
 
@@ -46,7 +44,6 @@ loadFile(Name) :-
 	read(Savedata,NewDY),
 	read(Savedata,NewND),
 	read(Savedata,NewCD),
-	read(Savedata,NewAD),
 	write('membaca save data berhasil...'),nl,
 	asserta(health(self,NewHE)),
 	asserta(weapon(self,NewWE)),
@@ -55,6 +52,5 @@ loadFile(Name) :-
 	asserta(location(deadzone,NewDX,NewDY)),
 	asserta(dead(NewND)),
 	asserta(count(NewCD)),
-	asserta(assignDead(NewAD)),
 	write('Load save data berhasil!'),nl,
 	close(Savedata).
