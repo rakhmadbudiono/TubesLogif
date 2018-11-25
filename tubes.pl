@@ -117,7 +117,7 @@ start :- write('Selamat datang di desa Konoha'), nl,
 	write('X = tidak dapat diakses'), nl,
 	asserta(ammo(c,3)),
 	asserta(ammo(k,3)),
-	asserta(ammo(s,3)),
+	asserta(ammo(s1,3)),
 	asserta(ammo(p,3)),
 	asserta(location(self, 5,5)),
 	asserta(health(self, 100)),
@@ -472,12 +472,12 @@ use(X) :- weaponList(X), inventory(I), member(X,I), retract(weapon(self, W)), re
 use(X) :- consumable(X), inventory(I), member(X, I), retract(inventory(I)), delete_one(X, I, Y), assertz(inventory(Y)), useConsumable(X), notMoreThan100, write(X),write(' menyembuhkan anda'), !.
 use(X) :- armorList(X,H), inventory(I), member(X,I),armor(self, none, _), retract(armor(self,none,_)),assertz(armor(self, X, H)),retract(inventory(I)),delete_one(X,I,L), assertz(inventory(L)),!.
 use(X) :- armorList(X,H), inventory(I), member(X,I), retract(armor(self, W, _)), retract(inventory(L)),
-	delete_one(X, L, Y), assertz(inventory([W|Y])), assertz(armor(self, X, H)),!.
-	use(X) :- ammoList(X), inventory(I), member(X,I), retract(inventory(I)), delete_one(X, I, Y), assertz(inventory(Y)), assocAmmo(X,P), retract(ammo(P,O)), Temp is O + 5, assertz(ammo(P,Temp)),!.
+	delete_one(X, L, Y), assertz(inventory([W|Y])), assertz(armor(self, X, H)), write('Perisai terbatas! Gunakan dengan baik!'),!.
+	use(X) :- ammoList(X), inventory(I), member(X,I), retract(inventory(I)), delete_one(X, I, Y), assertz(inventory(Y)), assocAmmo(X,P), retract(ammo(P,O)), Temp is O + 5, assertz(ammo(P,Temp)), write('Sangat menyegarkan'),!.
 use(_) :- write('Anda tidak punya itu').
 assocAmmo(chakra,c).
 assocAmmo(kunai,k).
-assocAmmo(shuriken,s).
+assocAmmo(shuriken,s1).
 assocAmmo(scroll,p).
 
 useConsumable(X) :- heal(X, HHE), retract(health(self, HE)),
@@ -496,7 +496,7 @@ attack :- enemy(E), location(self, X, Y), location(E, X, Y), inventory(L), weapo
 attack :- write('Anda menyerang angin!'),!.
 
 ammospec(kunaiThrower,k).
-ammospec(shurikenThrower,s).
+ammospec(shurikenThrower,s1).
 ammospec(rasengan,c).
 ammospec(sexyNoJutsu,p).
 ammospec(ultimateJutsu,c).
@@ -505,7 +505,7 @@ ammospec(ultimateJutsu,c).
 status :- game(0), write('Kau belum memulai permainan.'), fail, !.
 status :- game(1), health(self, HE), write('Darah : '), write(HE), nl,
 	inventory(L), weapon(self,B), write('Senjata : '), write(B), nl, armor(self,W,H), write('Armor: '), write(W), nl, write('Proteksi: '), write(H), nl,
-	write('Inventori : '), writestatinv(L), nl, write('Cakra: '), ammo(c,T1), write(T1), nl, write('Kunai: '), ammo(k,T2), write(T2), nl, write('Shuriken: '), ammo(s,T3), write(T3), nl,  write('Scroll: '), ammo(p,T4), write(T4),!.
+	write('Inventori : '), writestatinv(L), nl, write('Cakra: '), ammo(c,T1), write(T1), nl, write('Kunai: '), ammo(k,T2), write(T2), nl, write('Shuriken: '), ammo(s1,T3), write(T3), nl,  write('Scroll: '), ammo(p,T4), write(T4),!.
 
 
 writestatinv(L):- inventory(L), L == [], write('Anda tidak punya apa-apa'),!.
