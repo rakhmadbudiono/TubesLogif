@@ -104,7 +104,7 @@ start :- write('Selamat datang di desa Konoha'), nl,
 	write(' attack. -- serang musuh yang menghalangi jalanmu'),nl,
 	write(' status. -- menunjukkan status kamu'),nl,
 	write(' save(Filename). -- simpan permainan'),nl,
-	write(' loaddata(Filename). -- load permainan'),nl,
+	write(' loadFile(Filename). -- load permainan'),nl,
 	nl,
 	write('Objek:'),nl,
 	write('W = senjata'),nl,
@@ -117,7 +117,7 @@ start :- write('Selamat datang di desa Konoha'), nl,
 	write('X = tidak dapat diakses'), nl,
 	asserta(ammo(c,3)),
 	asserta(ammo(k,3)),
-	asserta(ammo(s1,3)),
+	asserta(ammo(s,3)),
 	asserta(ammo(p,3)),
 	asserta(location(self, 5,5)),
 	asserta(health(self, 100)),
@@ -157,7 +157,7 @@ assigningFence(X,Y) :- asserta(location(fence,X,Y)), !.
 assigningFence(_, _).
 
 assignDead(X) :- forall(between(1,10,Y), (asserta(location(deadzone,Y,X)),asserta(location(deadzone,X,Y)), setPixel(X,Y,'X'), setPixel(Y,X,'X'), delxp(X,Y), delxp(Y,X))).
-assignDead(X) :- location(_,_,_).
+assignDead(_) :- location(_,_,_).
 delxp(X, Y) :- location(A, X, Y), A \= fence, A \= deadzone, retract(location(A,X,Y)).
 delxp(_, _) :- location(_,_,_).
 
@@ -280,7 +280,7 @@ help :- write('Perintah yang tersedia:'), nl,
 	write(' attack. -- serang musuh yang menghalangi jalanmu'),nl,
 	write(' status. -- menunjukkan status kamu'),nl,
 	write(' save(Filename). -- simpan permainan'),nl,
-	write(' loaddata(Filename). -- load permainan'),nl.
+	write(' load(Filename). -- load permainan'),nl.
 
 /* Quit */
 quit :- write('Credits :'), nl,
@@ -332,6 +332,7 @@ printMap(X,Y) :- location(self, X, Y), write('P'), !.
 printMap(_,_) :- write('-').
 
 /* Map */
+map :- game(0), write('Kamu belum memulai permainan'), !.
 map :-  updateMap, peta(X), printList(X), !.
 
 updateMap :- forall(between(2,9,Y),
@@ -377,21 +378,25 @@ writedead :- forall(between(1,10,X),(forall(between(1,10,Y), writeactual(X, Y)))
 writeactual(X, Y) :- location(deadzone,X,Y), write(X), write(' '), write(Y), nl.
 writeactual(_, _) :- location(_,_,_).
 
+n :- game(0), write('Kamu belum memulai permainan'), !.
 n :- isWin, !.
 n :- location(self, _,B), B == 2, write('Selamat, anda menabrak pagar!'), !.
 n :- retract(location(self, A,B)), C is B-1, asserta(location(self, A,C)), assigning(A, B), checkingAround,
 	retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), droprandom, deadzoneTrav, deadzoneCheck, updateMap, enemiesTurn, !.
 
+s :- game(0), write('Kamu belum memulai permainan'), !.
 s :- isWin, !.
 s :- location(self, _,B), B == 9, write('Selamat, anda menabrak pagar!'), !.
 s :- retract(location(self, A,B)), C is B+1, asserta(location(self, A,C)), assigning(A, B), checkingAround,
 	retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), droprandom, deadzoneTrav, deadzoneCheck, updateMap, enemiesTurn, !.
 
+w :- game(0), write('Kamu belum memulai permainan'), !.
 w :- isWin, !.
 w :- location(self, A,_), A == 2, write('Selamat, anda menabrak pagar!'), !.
 w :- retract(location(self, A,B)), C is A-1, asserta(location(self, C,B)), assigning(A, B), checkingAround,
 	retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), droprandom, deadzoneTrav, deadzoneCheck, updateMap, enemiesTurn, !.
 
+e :- game(0), write('Kamu belum memulai permainan'), !.
 e :- isWin, !.
 e :- location(self, A,_), A == 9, write('Selamat, anda menabrak pagar!'), !.
 e :- retract(location(self, A,B)), C is A+1, asserta(location(self, C,B)), assigning(A, B), checkingAround,
@@ -406,14 +411,14 @@ deadzoneCheck :- location(_,_,_).
 
 death :- health(self,X), X =< 0, killPlayer.
 death :- location(_,_,_).
-droprandom :- count(Cnt), Cnt == 9, random(1, 10, X), forall(between(2, X, Z), (random(1,4,Sup), supplydrop(Sup))).
+droprandom :- count(Cnt), Cnt == 9, random(1, 10, X), forall(between(2, X, _), (random(1,4,Sup), supplydrop(Sup))).
 droprandom :- location(_,_,_).
 supplydrop(Z) :- Z == 1, random(2, 9, X), random(2, 9, Y), asserta(location(katsuyu, X, Y)), write('ErickoLiem : winner winner chicken dinner! (katsuyu has been dropped at '), write(X), write(','), write(Y), write(')'), nl.
 supplydrop(Z) :- Z == 2, random(2, 9, X), random(2, 9, Y), asserta(location(rasengan, X, Y)), write('ErickoLiem : winner winner chicken dinner! (rasengan has been dropped at '), write(X), write(','), write(Y), write(')'), nl.
 supplydrop(Z) :- Z == 3, random(2, 9, X), random(2, 9, Y), asserta(location(kunaiThrower, X, Y)), write('ErickoLiem : winner winner chicken dinner! (kunaiThrower has been dropped at '), write(X), write(','), write(Y), write(')'), nl.
 supplydrop(Z) :- Z == 4, random(2, 9, X), random(2, 9, Y), asserta(location(kunai, X, Y)), write('ErickoLiem : winner winner chicken dinner! (kunai has been dropped at '), write(X), write(','), write(Y), write(')'), nl.
-killPlayer :- write('omaewa mo shindeiru'), retract(game(X)), asserta(game(0)), !.
-nani :- retract(game(F)), asserta(game(1)), retract(health(self, X)), asserta(health(self, 100)), write('Reanimated'), nl.
+killPlayer :- write('omaewa mo shindeiru'), retract(game(_)), asserta(game(0)), !.
+nani :- retract(game(_)), asserta(game(1)), retract(health(self, _)), asserta(health(self, 100)), write('Reanimated'), nl.
 nani :- location(_,_,_).
 checkingAround :- checkingGround, checkingAround2, checkingAround3, checkingAround4, checkingAround5.
 
@@ -465,19 +470,19 @@ delete_one(X,[X|Xs],Xs).
 delete_one(X,[Y|Xs],[Y|Ys]):-X \= Y, delete_one(X,Xs,Ys).
 
 /* Use */
-use(_) :- \+ game(1), write('Kamu belum memulai permainan'), !.
+use(_) :- game(0), write('Kamu belum memulai permainan'), !.
 use(X) :- weaponList(X), inventory(I), member(X,I), weapon(self, none), retract(weapon(self,none)),assertz(weapon(self, X)), retract(inventory(I)), delete_one(X,I,L), assertz(inventory(L)),!.
 use(X) :- weaponList(X), inventory(I), member(X,I), retract(weapon(self, W)), retract(inventory(L)),
 	delete_one(X, L, Y), assertz(inventory([W|Y])), assertz(weapon(self, X)),!.
 use(X) :- consumable(X), inventory(I), member(X, I), retract(inventory(I)), delete_one(X, I, Y), assertz(inventory(Y)), useConsumable(X), notMoreThan100, write(X),write(' menyembuhkan anda'), !.
 use(X) :- armorList(X,H), inventory(I), member(X,I),armor(self, none, _), retract(armor(self,none,_)),assertz(armor(self, X, H)),retract(inventory(I)),delete_one(X,I,L), assertz(inventory(L)),!.
 use(X) :- armorList(X,H), inventory(I), member(X,I), retract(armor(self, W, _)), retract(inventory(L)),
-	delete_one(X, L, Y), assertz(inventory([W|Y])), assertz(armor(self, X, H)), write('Perisai terbatas! Gunakan dengan baik!'),!.
-	use(X) :- ammoList(X), inventory(I), member(X,I), retract(inventory(I)), delete_one(X, I, Y), assertz(inventory(Y)), assocAmmo(X,P), retract(ammo(P,O)), Temp is O + 5, assertz(ammo(P,Temp)), write('Sangat menyegarkan'),!.
+	delete_one(X, L, Y), assertz(inventory([W|Y])), assertz(armor(self, X, H)),!.
+	use(X) :- ammoList(X), inventory(I), member(X,I), retract(inventory(I)), delete_one(X, I, Y), assertz(inventory(Y)), assocAmmo(X,P), retract(ammo(P,O)), Temp is O + 5, assertz(ammo(P,Temp)),!.
 use(_) :- write('Anda tidak punya itu').
 assocAmmo(chakra,c).
 assocAmmo(kunai,k).
-assocAmmo(shuriken,s1).
+assocAmmo(shuriken,s).
 assocAmmo(scroll,p).
 
 useConsumable(X) :- heal(X, HHE), retract(health(self, HE)),
@@ -487,16 +492,16 @@ notMoreThan100 :- health(self, HE), HE >= 100, retract(health(self, _)), assertz
 notMoreThan100 :- health(self,HE), HE < 100,!.
 
 /* Attack */
-attack :- \+ game(1), isWin, !.
 attack :- \+ game(1), write('Kamu belum memulai permainan'), !.
+attack :- \+ game(1), isWin, !.
 attack :- enemy(E), location(self,X,Y), location(E,X,Y), weapon(self,none), write('Anda tidak punya senjata, jadi anda meninjunya!'), nl, attackR(E), !.
-attack :- enemy(E), location(self, X, Y), location(E, X, Y), inventory(L), weapon(self,Q), ammospec(Q,R),  ammo(R,W), W == 0, write('Ammomu kosong!'), nl, retract(weapon(self,Q)), asserta(weapon(self,none)), attackR(E), retract(weapon(self,none)), asserta(weapon(self,Q)),!.
-attack :- enemy(E), location(self, X, Y), location(E, X, Y), inventory(L), weapon(self,Q), ammospec(Q,R),  ammo(R,W), health(E, H), H == 0, retract(ammo(R,W)), W1 is W-1, assertz(ammo(R,W1)),!.
-attack :- enemy(E), location(self, X, Y), location(E, X, Y), inventory(L), weapon(self,Q), ammospec(Q,R),  ammo(R,W), attackR(E), retract(ammo(R,W)), W1 is W-1, assertz(ammo(R,W1)), !.
+attack :- enemy(E), location(self, X, Y), location(E, X, Y), inventory(_), weapon(self,Q), ammospec(Q,R),  ammo(R,W), W == 0, write('Ammomu kosong!'), nl, retract(weapon(self,Q)), asserta(weapon(self,none)), attackR(E), retract(weapon(self,none)), asserta(weapon(self,Q)),!.
+attack :- enemy(E), location(self, X, Y), location(E, X, Y), inventory(_), weapon(self,Q), ammospec(Q,R),  ammo(R,W), health(E, H), H == 0, retract(ammo(R,W)), W1 is W-1, assertz(ammo(R,W1)),!.
+attack :- enemy(E), location(self, X, Y), location(E, X, Y), inventory(_), weapon(self,Q), ammospec(Q,R),  ammo(R,W), attackR(E), retract(ammo(R,W)), W1 is W-1, assertz(ammo(R,W1)), !.
 attack :- write('Anda menyerang angin!'),!.
 
 ammospec(kunaiThrower,k).
-ammospec(shurikenThrower,s1).
+ammospec(shurikenThrower,s).
 ammospec(rasengan,c).
 ammospec(sexyNoJutsu,p).
 ammospec(ultimateJutsu,c).
@@ -505,7 +510,7 @@ ammospec(ultimateJutsu,c).
 status :- game(0), write('Kau belum memulai permainan.'), fail, !.
 status :- game(1), health(self, HE), write('Darah : '), write(HE), nl,
 	inventory(L), weapon(self,B), write('Senjata : '), write(B), nl, armor(self,W,H), write('Armor: '), write(W), nl, write('Proteksi: '), write(H), nl,
-	write('Inventori : '), writestatinv(L), nl, write('Cakra: '), ammo(c,T1), write(T1), nl, write('Kunai: '), ammo(k,T2), write(T2), nl, write('Shuriken: '), ammo(s1,T3), write(T3), nl,  write('Scroll: '), ammo(p,T4), write(T4),!.
+	write('Inventori : '), writestatinv(L), nl, write('Cakra: '), ammo(c,T1), write(T1), nl, write('Kunai: '), ammo(k,T2), write(T2), nl, write('Shuriken: '), ammo(s,T3), write(T3), nl,  write('Scroll: '), ammo(p,T4), write(T4),!.
 
 
 writestatinv(L):- inventory(L), L == [], write('Anda tidak punya apa-apa'),!.
@@ -524,10 +529,10 @@ attackR(X) :- game(1), enemy(X), location(X, A, O), location(self, A, O),
 	ECH > 0,
 	write('The '), write(X), write(' health is '), write(ECH), nl,!.
 
+attackR(_) :- health(self, SCH), SCH =< 0, write('YOU DIE.'), nl, retract(game(_)), assertz(game(0)), !.
 attackR(X) :- retract(health(X, H)), H =< 0, asserta(health(X,0)), location(self,T,T1), retract(location(X, T, T1)), weapon(X,P), asserta(location(P,T,T1)),
-	write('The '), write(X), write(' is dead!'), nl,  write('The enemy drops a '), write(P), retract(health(X, H)), asserta(health(X,50)),!.
+	write('The '), write(X), write(' is dead!'), nl,  write('The enemy drops a '), write(P),!.
 
-attackR(_) :- health(self, SCH), SCH =< 0, write('You are dead. Better be ready next time.'), nl, retract(game(_)), assertz(game(0)).
 
 validasiArmor :- armor(self, _, Q), Q  > 0, !.
 validasiArmor :- armor(self, A, Q), Q == 0, retract(armor(self,A,Q)), asserta(armor(self,none,0)),!.
@@ -550,7 +555,7 @@ save(Name) :-
 	close(Savedata).
 
  /* Load */
- 	loaddata(Name) :-
+loadFile(Name) :-
 	open(Name,read,Savedata),
 	health(self,HE),
 	weapon(self,WE),
@@ -573,88 +578,3 @@ save(Name) :-
 	asserta(location(self,NewX,NewY)),
 	write('Load save data berhasil!'),nl,
 	close(Savedata).
-
-/* CHEAT */
-
-/* HP = 9999 */
-baguvix :-	retract(health(self,_)),
-		asserta(health(self,9999)),
-		write("Cheat aktif!"), nl.
-
-/* HP = 0 */
-goodbyecruelworld :- 	retract(health(self,_)),
-			asserta(health(self,0)),
-			write("Cheat aktif!"),nl,
-			write("Kenapa lu cheat ini wkwk!!!"), nl.
-			
-/* Reset Deadzone */
-delDeadzone :- retract(location(deadzone,X,Y))).
-delDeadzone :- location(_,_,_).
-setMapCheat(_, X, Y) :- setPixel(X, Y, '-').
-setMapCheat(_, _, _) :- location(_,_,_).
-
-aezakmi :-	forall(between(2,9,Y),
-		forall(between(2,9,X),
-		(location(Q,X,Y), setMapCheat(Q,X,Y)))),
-		location(self, X, Y), setPixel(X,Y,'P'),delDeadzone, !,
-		write("Cheat Aktif!"), nl.
-
-/* Super Punch */
-stinglikeabee :- 	retract(damage(none,5)),
-			asserta(damage(none,100)),
-			write("Cheat Aktif!"), nl.
-
-/* Sennin Mode = Powerful Rasengan */
-worshipme :-	retract(weapon(self,_)),
-		retract(damage(rasengan,20)),
-		asserta(weapon(self,rasengan)),
-		asserta(damage(rasengan,9999)),
-		write("Cheat Aktif!"), nl.
-
-/* Senjata Terkuat */
-uzumymw :-	retract(weapon(self,_)),
-		asserta(weapon(self,ultimateJutsu)),
-		write("Cheat Aktif!"), nl.
-
-/* Armor Terkuat */
-hesoyam :-	retract(armor(self,_,_)),
-		asserta(armor(self,nonNewtonianFluidArmor,9999)),
-		write("Cheat Aktif!"), nl.
-
-/* Semua Attack kunai dan shuriken jadi 9999 */
-professionalkiller :-	retract(damage(kunaiThrower, 10)),
-			retract(damage(shurikenThrower, 10)),
-			asserta(damage(kunaiThrower, 9999)),
-			asserta(damage(shurikenThrower, 9999)),
-			write("Cheat Aktif!"), nl.
-
-/* Sexy Jutsu jadi ampuh */
-helloladies :-	retract(damage(sexyNoJutsu, 25)),
-		asserta(damage(sexyNoJutsu, 9999)),
-		write("Cheat Aktif!"), nl.
-
-/* Musuh jadi kuat */
-bringiton :-	retract(health(shinobiSuna,_)),
-		retract(health(shinobiKiri,_)),
-		retract(health(shinobiIwa,_)),
-		retract(health(shinobiKumo,_)),
-		retract(damage(shinobiSuna,5)),
-		retract(damage(shinobiKiri,5)),
-		retract(damage(shinobiIwa,5)),
-		retract(damage(shinobiKumo,5)),
-		asserta(health(shinobiSuna,100)),
-		asserta(health(shinobiKiri,100)),
-		asserta(health(shinobiIwa,100)),
-		asserta(health(shinobiKumo,100)),
-		asserta(damage(shinobiSuna,100)),
-		asserta(damage(shinobiKiri,100)),
-		asserta(damage(shinobiIwa,100)),
-		asserta(damage(shinobiKumo,100)),
-		write("Cheat Aktif!"), nl.
-		write("Greget juga lu wkwk.")
-
-/* Teleport */
-behindyou(newX,newY) :-	retract(location(self,_,_)),
-			asserta(location(self,newX,newY)),
-			write("Hiraishin no Jutsu!"), nl,
-			write("Cheat Aktif!"), nl.
