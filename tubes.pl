@@ -62,7 +62,7 @@ allName(nonNewtonianFluidArmor, 'Non-Newtonian Fluid Armor').
 consumable(katsuyu).
 consumable(healingJutsu).
 
-heal(katsuyu, 0).
+heal(katsuyu, 20).
 heal(healingJutsu, 10).
 
 damage(shinobiSuna, 5).
@@ -74,6 +74,7 @@ damage(shurikenThrower, 10).
 damage(rasengan, 20).
 damage(sexyNoJutsu, 25).
 damage(ultimateJutsu, 50).
+damage(none,5).
 
 /* Start */
 start :- write("Selamat datang di desa Konoha"), nl,
@@ -107,6 +108,7 @@ start :- write("Selamat datang di desa Konoha"), nl,
 	asserta(location(self, 5,5)),
 	asserta(health(self, 100)),
 	asserta(inventory([])),
+	asserta(isInventFull(0)),
 	asserta(weapon(self, none)),
 	asserta(armor(self, none, 0)),
 	asserta(peta([])),
@@ -120,6 +122,7 @@ start :- write("Selamat datang di desa Konoha"), nl,
 
 	assignNonObject,
 	assignFence,
+	setEnemy(10),
 	assignDead(1),
 	assignDead(10),
 
@@ -141,7 +144,7 @@ assigningFence(_, _).
 
 assignDead(X) :- forall(between(1,10,Y), (asserta(location(deadzone,Y,X)),asserta(location(deadzone,X,Y)), setPixel(X,Y,'X'), setPixel(Y,X,'X'), delxp(X,Y), delxp(Y,X))).
 delxp(X, Y) :- location(A, X, Y), A \= fence, A \= deadzone, retract(location(A,X,Y)).
-delxp(X, Y) :- location(_,_,_).
+delxp(_, _) :- location(_,_,_).
 
 change([_|Tail],[C|Tail],C,0) :- !.
 change([A|Tail],[A|LBaru],C,Indeks) :- IndeksBaru is Indeks-1, change(Tail,LBaru,C,IndeksBaru).
@@ -259,7 +262,7 @@ printList([A|Tail]) :- write(A), printList(Tail).
 lookcnt :- count(X), write(X), dead(Y), nl, write(Y), nl, writedead.
 writedead :- forall(between(1,10,X),(forall(between(1,10,Y), writeactual(X, Y)))).
 writeactual(X, Y) :- location(deadzone,X,Y), write(X), write(' '), write(Y), nl.
-writeactual(X, Y) :- location(_,_,_).
+writeactual(_, _) :- location(_,_,_).
 
 n :- location(self, _,B), B == 2, write('Selamat, anda menabrak pagar!'), !.
 n :- retract(location(self, A,B)), C is B-1, asserta(location(self, A,C)), assigning(A, B), checkingAround, retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)), deadzoneTrav, deadzoneCheck, updateMap,!.
@@ -273,14 +276,14 @@ w :- retract(location(self, A,B)), C is A-1, asserta(location(self, C,B)), assig
 e :- location(self, A,_), A == 9, write('Selamat, anda menabrak pagar!'), !.
 e :- retract(location(self, A,B)), C is A+1, asserta(location(self, C,B)), assigning(A, B), checkingAround, retract(count(Cnt)), Dmp is Cnt + 1, asserta(count(Dmp)),deadzoneTrav,  deadzoneCheck, updateMap,!.
 
-deadzoneTrav :- count(Cnt), Cnt == 10, retract(dead(DCnt)), DCntNew is DCnt + 1, asserta(dead(DCntNew)), retract(count(DUMP)), asserta(count(1)), deadzoneDraw, !.
+deadzoneTrav :- count(Cnt), Cnt == 10, retract(dead(DCnt)), DCntNew is DCnt + 1, asserta(dead(DCntNew)), retract(count(_)), asserta(count(1)), deadzoneDraw, !.
 deadzoneTrav :- location(_,_,_).
 deadzoneDraw :- write('Deadzone mendekat'), dead(X), Xnew is X, assignDead(Xnew), Dimp is 11-Xnew, assignDead(Dimp).
 deadzoneDraw :- location(_,_,_).
 deadzoneCheck :- location(self, X, Y), location(deadzone, X, Y), killPlayer, !.
 deadzoneCheck :- location(_,_,_).
 
-killPlayer :- write('ANDA MATI CYKA BLYAT'), !.
+killPlayer :- write('ANDA MATI CYKA BLYAT'), retract(game(X)), asserta(game(0)), !.
 
 checkingAround :- checkingGround, checkingAround2, checkingAround3, checkingAround4, checkingAround5.
 
@@ -313,7 +316,7 @@ cekInventfull(X):-length(X,Y), Y < 5, retract(isInventFull(_)), assertz(isInvent
 cekInventfull(X):-length(X,5), retract(isInventFull(_)), assertz(isInventFull(1)),!.
 
 cekEmpty(B,_,_):- weaponList(B); armorList(B,_); ammoList(B); medicineList(B),  !.
-cekEmpty(B,X,Y):- asserta(location(none,X,Y)).
+cekEmpty(_,X,Y):- asserta(location(none,X,Y)).
 
 /* Drop */
 drop(_) :- game(0), write('Kau belum memulai permainan.'), !.
@@ -324,10 +327,10 @@ dropInvent(_, [], _) :- !.
 dropInvent(X, [H | T], T) :- allName(X, Z), allName(H, Z), !.
 dropInvent(X, [H | T], [H | TX]) :- dropInvent(X, T, TX).
 
-dropHand :- retract(inventory(L)), weapon(self, X), take(X),!.
-dropHand :- retract(inventory(L)), weapon(self,none), !.
+dropHand :- retract(inventory(_)), weapon(self, X), take(X),!.
+dropHand :- retract(inventory(_)), weapon(self,none), !.
 
-delete_one(X,[],[]).
+delete_one(_,[],[]).
 delete_one(X,[X|Xs],Xs).
 delete_one(X,[Y|Xs],[Y|Ys]):-X \= Y, delete_one(X,Xs,Ys).
 
@@ -336,21 +339,22 @@ use(_) :- \+ game(1), write('Kamu belum memulai permainan'), !.
 use(X) :- weaponList(X), inventory(I), member(X,I), weapon(self, none), retract(weapon(self,none)),assertz(weapon(self, X)), retract(inventory(I)), delete_one(X,I,L), assertz(inventory(L)),!.
 use(X) :- weaponList(X), inventory(I), member(X,I), retract(weapon(self, W)), retract(inventory(L)),
 	delete_one(X, L, Y), assertz(inventory([W|Y])), assertz(weapon(self, X)),!.
-use(X) :- consumable(X), inventory(I), member(X, I), retract(inventory(L)), delete_one(X, L, Y), assertz(inventory(Y)), useConsumable(X), notMoreThan100, !.
+use(X) :- consumable(X), inventory(I), member(X, I), retract(inventory(I)), delete_one(X, I, Y), assertz(inventory(Y)), useConsumable(X), notMoreThan100, write(X),write(' menyembuhkan anda'), !.
 use(X) :- armorList(X,H), inventory(I), member(X,I),armor(self, none, _), retract(armor(self,none,_)),assertz(armor(self, X, H)),retract(inventory(I)),delete_one(X,I,L), assertz(inventory(L)),!.
 use(X) :- armorList(X,H), inventory(I), member(X,I), retract(armor(self, W, _)), retract(inventory(L)),
 	delete_one(X, L, Y), assertz(inventory([W|Y])), assertz(armor(self, X, H)),!.
-use(X) :- write('Anda tidak punya itu').
+use(_) :- write('Anda tidak punya itu').
 
 useConsumable(X) :- heal(X, HHE), retract(health(self, HE)),
 	CHE is HE + HHE, assertz(health(self, CHE)).
 
-notMoreThan100 :- health(self, HE), HE > 100, retract(health(self, _)), assertz(health(self, 100)), !.
+notMoreThan100 :- health(self, HE), HE >= 100, retract(health(self, _)), assertz(health(self, 100)), !.
+notMoreThan100 :- health(self,HE), HE < 100,!.
 
 /* Attack */
 attack :- \+ game(1), write('Kamu belum memulai permainan'), !.
-attack :- weapon(self,none), write("Anda tidak punya senjata."),!.
-attack :- enemy(E), location(self, X, Y), location(E, X, Y), inventory(L), weapon(self,Q), ammospec(Q,R),  \+member(R,L), write("Ammomu kosong!"),!.
+attack :- enemy(E), location(self,X,Y), location(E,X,Y), weapon(self,none), write("Anda tidak punya senjata, jadi anda meninjunya!"), nl, attackR(E), !.
+attack :- enemy(E), location(self, X, Y), location(E, X, Y), inventory(L), weapon(self,Q), ammospec(Q,R),  \+member(R,L), write("Ammomu kosong!"), nl, retract(weapon(self,Q)), asserta(weapon(self,none)), attackR(E), retract(weapon(self,none)), asserta(weapon(self,Q)),!.
 attack :- enemy(E), location(self, X, Y), location(E, X, Y), inventory(L), weapon(self,Q), ammospec(Q,R),  member(R,L), health(E, H), H == 0, retract(inventory(L)), delete_one(R,L,T), assertz(inventory(T)),!.
 attack :- enemy(E), location(self, X, Y), location(E, X, Y), inventory(L), weapon(self,Q), ammospec(Q,R),  member(R,L), attackR(E), retract(inventory(L)), delete_one(R,L,T), assertz(inventory(T)), !.
 attack :- write("Anda menyerang angin!"),!.
@@ -362,7 +366,7 @@ ammospec(ultimateJutsu,chakra).
 /* Status */
 status :- game(0), write('Kau belum memulai permainan.'), fail, !.
 status :- game(1), health(self, HE), write('Darah : '), write(HE), nl,
-	inventory(L), weapon(self,B), write('Senjata : '), write(B), nl, armor(self,W,H), write('Armor: '), write(W), nl, write('Kondisi: '), write(H), nl,
+	inventory(L), weapon(self,B), write('Senjata : '), write(B), nl, armor(self,W,H), write('Armor: '), write(W), nl, write('Proteksi: '), write(H), nl,
 	write('Inventori : '), writestatinv(L),!.
 
 writestatinv(L):- inventory(L), L == [], write('Anda tidak punya apa-apa'),!.
@@ -380,10 +384,56 @@ attackR(X) :- game(1), enemy(X), location(X, A, O), location(self, A, O),
 	ECH > 0,
 	write('The '), write(X), write(' health is '), write(ECH), nl,!.
 
-attackR(X) :- retract(health(X, H)), H =< 0, assertz(health(X, 0)), retract(location(X, _, _)),
-	write('The '), write(X), write(' is dead!'), nl,!.
+attackR(X) :- retract(health(X, H)), H =< 0, assertz(health(X, 0)), retract(location(X, A, B)),
+	write('The '), write(X), write(' is dead!'), nl, weapon(X,P), asserta(location(P,A,B)), write('The enemy drops a '), write(P),!.
 
 attackR(_) :- health(self, SCH), SCH =< 0, write('You are dead. Better be ready next time.'), nl, retract(game(_)), assertz(game(0)).
+
+/* Enemy */
+setEnemy(0) :- !.
+setEnemy(N) :- random(2, 9, X), random(2, 9, Y),
+  random(1, 5, E), mappingEnemy(E, X, Y), location(U, X, Y),
+  random(1, 5, W), mappingWeapon(U, W), M is N-1, setEnemy(M), !.
+
+mappingEnemy(1, X, Y) :- asserta(location(shinobiSuna, X, Y)), !.
+mappingEnemy(2, X, Y) :- asserta(location(shinobiKiri, X, Y)), !.
+mappingEnemy(3, X, Y) :- asserta(location(shinobiIwa, X, Y)), !.
+mappingEnemy(4, X, Y) :- asserta(location(shinobiKumo, X, Y)), !.
+
+mappingWeapon(X, 1) :- asserta(weapon(X, kunaiThrower)), !.
+mappingWeapon(X, 2) :- asserta(weapon(X, shurikenThrower)), !.
+mappingWeapon(X, 3) :- asserta(weapon(X, rasengan)), !.
+mappingWeapon(X, 4) :- asserta(weapon(X, sexyNoJutsu)), !.
+
+enemyMovement(X, K, L) :- random(1, 3, A), mappingEnemyMovement(X, A, K, L), !.
+
+mappingEnemyMovement(_, 1, _, _) :- !.
+mappingEnemyMovement(X, _, C, D) :-  location(self, A, B),  A > C, B > D,
+  Cnew is C+1, Dnew is D, retract(location(X, C, D)), asserta(location(X, Cnew, Dnew)), !.
+mappingEnemyMovement(X, _, C, D) :-  location(self, A, B),  A > C, B == D,
+  Cnew is C+1, Dnew is D, retract(location(X, C, D)), asserta(location(X, Cnew, Dnew)), !.
+mappingEnemyMovement(X, _, C, D) :-  location(self, A, B),  A > C, B < D,
+  Cnew is C+1, Dnew is D, retract(location(X, C, D)), asserta(location(X, Cnew, Dnew)), !.
+mappingEnemyMovement(X, _, C, D) :-  location(self, A, B),  A == C, B > D,
+  Cnew is C, Dnew is D+1, retract(location(X, C, D)), asserta(location(X, Cnew, Dnew)), !.
+mappingEnemyMovement(X, _, C, D) :-  location(self, A, B),  A == C, B == D,
+  Cnew is C, Dnew is D, retract(location(X, C, D)), asserta(location(X, Cnew, Dnew)), !.
+mappingEnemyMovement(X, _, C, D) :-  location(self, A, B),  A == C, B < D,
+  Cnew is C, Dnew is D-1, retract(location(X, C, D)), asserta(location(X, Cnew, Dnew)), !.
+mappingEnemyMovement(X, _, C, D) :-  location(self, A, B),  A < C, B > D,
+  Cnew is C-1, Dnew is D, retract(location(X, C, D)), asserta(location(X, Cnew, Dnew)), !.
+mappingEnemyMovement(X, _, C, D) :-  location(self, A, B),  A < C, B == D,
+  Cnew is C-1, Dnew is D, retract(location(X, C, D)), asserta(location(X, Cnew, Dnew)), !.
+mappingEnemyMovement(X, _, C, D) :-  location(self, A, B),  A < C, B < D,
+  Cnew is C-1, Dnew is D, retract(location(X, C, D)), asserta(location(X, Cnew, Dnew)), !.
+
+/* attackPlayer(X) :- location(X, A, B), location(self, A, B), retract(health(self, H)), weapon(X, W),
+  damage(X, D), HP is H-D, asserta(health(self, HP)), write(X), write(" baru saja menyerangmu dengan "),
+  write(W), write(". Darahmu berkurang sebanyak "), write(D). */
+
+attackPlayer(_).
+
+enemiesTurn :- forall(enemy(X), forall(location(X, A, B), (enemyMovement(X, A, B), attackPlayer(X)))), !.
 
 /* Save */
 save(Name) :-
@@ -400,7 +450,7 @@ save(Name) :-
 	write('Data sudah tersimpan!'),nl,
 	close(Savedata).
 
- /* Load */
+ /* Load */ /*
 	open(Name,read,Savedata),
 	health(self,HE),
 	weapon(self,WE),
@@ -421,4 +471,4 @@ save(Name) :-
 	asserta(armor(self,NewAR)),
 	asserta(location(self,NewX,NewY)),
 	write('Load save data berhasil!'),nl,
-	close(Savedata).
+	close(Savedata). */
