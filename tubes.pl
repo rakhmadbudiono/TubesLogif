@@ -123,6 +123,7 @@ start :- write("Selamat datang di desa Konoha"), nl,
 	assignNonObject,
 	assignFence,
 	setEnemy(10),
+	asserta(nEnemy(10)),
 	assignDead(1),
 	assignDead(10),
 
@@ -143,6 +144,7 @@ assigningFence(X,Y) :- asserta(location(fence,X,Y)), !.
 assigningFence(_, _).
 
 assignDead(X) :- forall(between(1,10,Y), (asserta(location(deadzone,Y,X)),asserta(location(deadzone,X,Y)), setPixel(X,Y,'X'), setPixel(Y,X,'X'), delxp(X,Y), delxp(Y,X))).
+assignDead(X) :- location(_,_,_).
 delxp(X, Y) :- location(A, X, Y), A \= fence, A \= deadzone, retract(location(A,X,Y)).
 delxp(_, _) :- location(_,_,_).
 
@@ -358,11 +360,13 @@ attack :- enemy(E), location(self, X, Y), location(E, X, Y), inventory(L), weapo
 attack :- enemy(E), location(self, X, Y), location(E, X, Y), inventory(L), weapon(self,Q), ammospec(Q,R),  member(R,L), health(E, H), H == 0, retract(inventory(L)), delete_one(R,L,T), assertz(inventory(T)),!.
 attack :- enemy(E), location(self, X, Y), location(E, X, Y), inventory(L), weapon(self,Q), ammospec(Q,R),  member(R,L), attackR(E), retract(inventory(L)), delete_one(R,L,T), assertz(inventory(T)), !.
 attack :- write("Anda menyerang angin!"),!.
+
 ammospec(kunaiThrower,kunai).
 ammospec(shurikenThrower,shuriken).
 ammospec(rasengan,chakra).
 ammospec(sexyNoJutsu,scroll).
 ammospec(ultimateJutsu,chakra).
+
 /* Status */
 status :- game(0), write('Kau belum memulai permainan.'), fail, !.
 status :- game(1), health(self, HE), write('Darah : '), write(HE), nl,
@@ -373,10 +377,11 @@ writestatinv(L):- inventory(L), L == [], write('Anda tidak punya apa-apa'),!.
 writestatinv(L):- write(L),!.
 
 attackR(X) :- game(1), enemy(X), location(X, A, O), location(self, A, O),
-	retract(health(X, H)), retract(health(self, HS)), weapon(self,P), armor(self, _, Q),
+	retract(health(X, H)), retract(health(self, HS)), weapon(self,P), armor(self, Temp1, Q),
 	damage(P, DS),  damage(X, DE), SCH is HS-DE+(Q*0.1), ECH is H-DS,
 	assertz(health(X, ECH)), assertz(health(self, SCH)),
 	write('You attack the '), write(X), write(' with a '), write(P), nl,
+	Temp is Q-DE, retract(armor(self, Temp1, Q)), asserta(armor(self, Temp1, Temp)), validasiArmor,
 	write('You damaged the enemy by '), write(DS), write(' points'), nl,
 	write('The '), write(X), write(' damaged you by '), write(DE), write(' points'), nl,
 	SCH > 0,
@@ -388,6 +393,10 @@ attackR(X) :- retract(health(X, H)), H =< 0, assert(health(X,0)), location(self,
 	write('The '), write(X), write(' is dead!'), nl,  write('The enemy drops a '), write(P),!.
 
 attackR(_) :- health(self, SCH), SCH =< 0, write('You are dead. Better be ready next time.'), nl, retract(game(_)), assertz(game(0)).
+
+validasiArmor :- armor(self, _, Q), Q  > 0, !.
+validasiArmor :- armor(self, A, Q), Q == 0, retract(armor(self,A,Q)), asserta(armor(self,none,0)),!.
+validasiArmor :- armor(self, A, Q), Q < 0, retract(armor(self,A,Q)), asserta(armor(self,none,0)),!.
 
 /* Enemy */
 setEnemy(0) :- !.
@@ -435,40 +444,45 @@ attackPlayer(_).
 
 enemiesTurn :- forall(enemy(X), forall(location(X, A, B), (enemyMovement(X, A, B), attackPlayer(X)))), !.
 
+countEnemies.
+
 /* Save */
 save(Name) :-
 	open(Name,write,Savedata),
 	health(self,HE),
 	weapon(self,WE),
-	armor(self,AR),
+	armor(self,AR, AQ),
 	location(self,X,Y),
 	write(Savedata,HE),	write(Savedata,'.'),nl(Savedata),
 	write(Savedata,WE),	write(Savedata,'.'),nl(Savedata),
 	write(Savedata,AR),	write(Savedata,'.'),nl(Savedata),
+	write(Savedata,AQ),	write(Savedata,'.'),nl(Savedata),
 	write(Savedata,X),	write(Savedata,'.'),nl(Savedata),
 	write(Savedata,Y),	write(Savedata,'.'),nl(Savedata),
 	write('Data sudah tersimpan!'),nl,
 	close(Savedata).
 
- /* Load */ /*
+ /* Load */
+ 	loaddata(Name) :-
 	open(Name,read,Savedata),
 	health(self,HE),
 	weapon(self,WE),
-	armor(self,AR),
+	armor(self,AR, AQ),
 	location(self,X,Y),
 	retract(health(self,HE)),
 	retract(weapon(self,WE)),
-	retract(armor(self,AR)),
+	retract(armor(self,AR, AQ)),
 	retract(location(self,X,Y)),
 	read(Savedata,NewHE),
 	read(Savedata,NewWE),
 	read(Savedata,NewAR),
+	read(Savedata,NewAQ),
 	read(Savedata,NewX),
 	read(Savedata,NewY),
 	write('membaca save data berhasil...'),nl,
 	asserta(health(self,NewHE)),
 	asserta(weapon(self,NewWE)),
-	asserta(armor(self,NewAR)),
+	asserta(armor(self,NewAR, NewAQ)),
 	asserta(location(self,NewX,NewY)),
 	write('Load save data berhasil!'),nl,
-	close(Savedata). */
+	close(Savedata).
