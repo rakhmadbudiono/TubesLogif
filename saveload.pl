@@ -43,5 +43,6 @@ loadFile(Name) :-
 	asserta(armor(self,NewAR, NewAQ)),
 	asserta(location(self,NewX,NewY)),
 	asserta(location(deadzone,NewDX,NewDY)),
+	updateMap,
 	write('Load save data berhasil!'),nl,
 	close(Savedata).
