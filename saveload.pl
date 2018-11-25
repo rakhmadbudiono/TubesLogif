@@ -25,7 +25,6 @@ save(Name) :-
 
  /* Load */
 loadFile(_) :- game(0), write('Kamu belum memulai permainan'), !.
-
 loadFile(Name) :-
 	open(Name,read,Savedata),
 	retract(health(self,_)),
