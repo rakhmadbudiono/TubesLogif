@@ -1,6 +1,5 @@
 /* Save */
 save(_) :- game(0), write('Kamu belum memulai permainan'), !.
-
 save(Name) :-
 	open(Name,write,Savedata),
 	health(self,HE),
