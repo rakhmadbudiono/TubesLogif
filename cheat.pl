@@ -77,3 +77,8 @@ bringiton :-	retract(health(shinobiSuna,_)),
 				write("Cheat Aktif!"), nl.
 				write("Greget juga lu wkwk.")
 
+/* Teleport */
+behindyou(newX,newY) :-	retract(location(self,_,_)),
+			asserta(location(self,newX,newY)),
+			write("Hiraishin no Jutsu!"), nl,
+			write("Cheat Aktif!"), nl.
